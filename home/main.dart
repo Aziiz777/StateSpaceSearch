@@ -251,7 +251,7 @@ void main(List<String> arg) {
             step = step.lastState!) {
           solution.add(step);
         }
-        //for print solution path
+        //to print solution path
         print(solution.length);
         print("visited" + "${visited.length}");
         for (var a in solution) {
