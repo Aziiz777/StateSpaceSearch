@@ -56,26 +56,31 @@ void main(List<String> arg) {
   }
 
   state goNextState(state currentState, routes destinationRoute) {
-    cost c = calculateCost(destinationRoute);
+    cost edgeCost = calculateCost(destinationRoute);
+    // if (0 <= currentState.health! + edgeCost.health! &&
+    //     0 <= currentState.money! - edgeCost.money!) {
     var lastState = currentState;
     var lastVehicle = destinationRoute.vehicle;
     var nextStation = destinationRoute.to;
     // print("costHealth" + "${c.health}");
     state newState = state(
         cost(
-          lastState.lastStationCost!.money! + c.money!,
-          lastState.lastStationCost!.time! + c.time!,
-          lastState.lastStationCost!.health! + c.health!,
+          lastState.lastStationCost!.money! + edgeCost.money!,
+          lastState.lastStationCost!.time! + edgeCost.time!,
+          lastState.lastStationCost!.health! + edgeCost.health!,
         ),
-        lastState.health! + c.health!,
-        lastState.money! - c.money!,
-        lastState.time! + c.time!,
+        lastState.health! + edgeCost.health!,
+        lastState.money! - edgeCost.money!,
+        lastState.time! + edgeCost.time!,
         lastState,
         lastVehicle,
         nextStation,
         lastState.currentDist! + destinationRoute.dist!);
     // heuristic(newState);
     return newState;
+    // } else {
+    //   return null;
+    // }
   }
 
   double? heuristic(state currentState) {
@@ -107,28 +112,14 @@ void main(List<String> arg) {
     double? heuris = 0.0;
     while (getPossibleStation(currentState) != null) {
       List<routes>? possible = getPossibleStation(currentState);
-      possible!.sort(((a, b) => (a.waitingTime! + (a.dist! / a.vehicleSpeed!))
-          .compareTo(b.waitingTime! + (b.dist! / b.vehicleSpeed!))));
+      possible!.sort(((a, b) =>
+          (a.waitingTime! + (a.dist! / a.vehicleSpeed!) * 60)
+              .compareTo(b.waitingTime! + (b.dist! / b.vehicleSpeed!) * 60)));
       var a = possible[0].vehicle;
-
-      if (a == "Bus") {
-        heuris = heuris! +
-            possible[0].waitingTime! +
-            (possible[0].dist! / possible[0].vehicleSpeed!);
-        currentState = goNextState(currentState, possible[0]);
-      } else if (a == "Taxi") {
-        heuris = heuris! +
-            possible[0].waitingTime! +
-            (possible[0].dist! / possible[0].vehicleSpeed!);
-
-        currentState = goNextState(currentState, possible[0]);
-      } else {
-        heuris = heuris! +
-            possible[0].waitingTime! +
-            (possible[0].dist! / possible[0].vehicleSpeed!);
-
-        currentState = goNextState(currentState, possible[0]);
-      }
+      heuris = heuris! +
+          possible[0].waitingTime! +
+          (possible[0].dist! / possible[0].vehicleSpeed!) * 60;
+      currentState = goNextState(currentState, possible[0]);
     }
     return heuris;
   }
@@ -140,16 +131,8 @@ void main(List<String> arg) {
       possible!.sort(((a, b) =>
           a.calculateCost(a).money!.compareTo(b.calculateCost(b).money!)));
       var a = possible[0].vehicle;
-      if (a == "Bus") {
-        heuris = heuris! + calculateCost(possible[0]).money!;
-        currentState = goNextState(currentState, possible[0]);
-      } else if (a == "Taxi") {
-        heuris = heuris! + calculateCost(possible[0]).money!;
-        currentState = goNextState(currentState, possible[0]);
-      } else {
-        // heuris = heuris;
-        currentState = goNextState(currentState, possible[0]);
-      }
+      heuris = heuris! + calculateCost(possible[0]).money!;
+      currentState = goNextState(currentState, possible[0]);
     }
     return heuris;
   }
@@ -161,16 +144,8 @@ void main(List<String> arg) {
       possible!.sort(((a, b) =>
           a.calculateCost(a).health!.compareTo(b.calculateCost(b).health!)));
       var a = possible.last.vehicle;
-      if (a == "Bus") {
-        heuris = heuris! + calculateCost(possible.last).health!;
-        currentState = goNextState(currentState, possible.last);
-      } else if (a == "Taxi") {
-        heuris = heuris! + calculateCost(possible.last).health!;
-        currentState = goNextState(currentState, possible.last);
-      } else {
-        heuris = heuris! + calculateCost(possible.last).health!;
-        currentState = goNextState(currentState, possible.last);
-      }
+      heuris = heuris! + calculateCost(possible.last).health!;
+      currentState = goNextState(currentState, possible.last);
     }
     return heuris;
   }
@@ -179,12 +154,31 @@ void main(List<String> arg) {
     double? heuris = 0.0;
     while (getPossibleStation(currentState) != null) {
       List<routes>? possible = getPossibleStation(currentState);
-      possible!.sort(((a, b) => (a.waitingTime! + (a.dist! / a.vehicleSpeed!))
-          .compareTo(b.waitingTime! + (b.dist! / b.vehicleSpeed!))));
-      possible.sort(((a, b) =>
-          a.calculateCost(a).money!.compareTo(b.calculateCost(b).money!)));
-      possible.sort(((a, b) =>
-          a.calculateCost(a).health!.compareTo(b.calculateCost(b).health!)));
+
+      possible!.sort((a, b) {
+        int sort = (a.waitingTime! + (a.dist! / a.vehicleSpeed!))
+            .compareTo(b.waitingTime! + (b.dist! / b.vehicleSpeed!));
+        if (sort == 0) {
+          int sort2 =
+              a.calculateCost(a).money!.compareTo(b.calculateCost(b).money!);
+          if (sort2 == 0) {
+            return a
+                .calculateCost(a)
+                .health!
+                .compareTo(b.calculateCost(b).health!);
+          } else {
+            return sort2;
+          }
+        } else {
+          return sort;
+        }
+      });
+      // possible!.sort(((a, b) => (a.waitingTime! + (a.dist! / a.vehicleSpeed!))
+      //     .compareTo(b.waitingTime! + (b.dist! / b.vehicleSpeed!))));
+      // possible.sort(((a, b) =>
+      //     a.calculateCost(a).money!.compareTo(b.calculateCost(b).money!)));
+      // possible.sort(((a, b) =>
+      //     a.calculateCost(a).health!.compareTo(b.calculateCost(b).health!)));
       // print("******************************7");
       // print(possible[0].dist);
       // print(possible[1].dist);
@@ -196,44 +190,29 @@ void main(List<String> arg) {
           (possible[0].dist! / possible[0].vehicleSpeed!);
       var heurisMoney = calculateCost(possible[0]).money!;
       var heurisHealth = calculateCost(possible[0]).health!;
-      if (a == "Bus") {
-        heuris = heuris! + (heurisHealth + heurisMoney + heurisTime);
-        currentState = goNextState(currentState, possible[0]);
-      } else if (a == "Taxi") {
-        heuris = heuris! + (heurisHealth + heurisMoney + heurisTime);
-        currentState = goNextState(currentState, possible[0]);
-      } else {
-        heuris = heuris! + (heurisHealth + heurisMoney + heurisTime);
-        currentState = goNextState(currentState, possible[0]);
-      }
+      heuris = heuris! + (heurisHealth + heurisMoney + heurisTime);
+      currentState = goNextState(currentState, possible[0]);
     }
     return heuris;
   }
 
   aStar() {
-    queue.add(state(cost(0, 0, 0), 100, 2000, 0.0, null, null, "Hamak", 0.0));
+    state init = state(cost(0, 0, 0), 100, 2000, 0.0, null, null, "Hamak", 0.0);
+    queue.add(init);
     print("d");
+    print("s");
     while (queue.isNotEmpty) {
+      print("j");
       //All
-      // queue.sort((a, b) => a.currentH!.compareTo(b.currentH!));
-      // queue.sort((a, b) => ((a.time! + a.money! + a.health!) + a.currentH!)
-      //     .compareTo((b.time! + b.money! + b.health!) + b.currentH!));
-      //Health
-      // queue.sort((a, b) => a.currentH!.compareTo(b.currentH!));
-      // queue.sort((a, b) => (100 - a.health! + a.currentH!)
-      //     .compareTo(100 - b.health! + b.currentH!));
-      //money
-      // queue.sort((a, b) => (2000 - a.money! + a.currentH!)
-      //     .compareTo(2000 - b.money! + b.currentH!));
-      // queue.sort((a, b) => a.currentH!.compareTo(b.currentH!));
-      //Time
-      // queue.sort((a, b) => a.currentH!.compareTo(b.currentH!));
-      // queue.sort(
-      //     (a, b) => (a.time! + a.currentH!).compareTo(b.time! + b.currentH!));
-      //dist
-      queue.sort((a, b) => a.currentH!.compareTo(b.currentH!));
-      queue.sort((a, b) => (a.currentDist! + a.currentH!)
-          .compareTo(b.currentDist! + b.currentH!));
+      queue.sort((a, b) {
+        int sort = ((a.time! + a.money! + a.health!) + a.currentH!)
+            .compareTo((b.time! + b.money! + b.health!) + b.currentH!);
+
+        if (sort == 0) {
+          return a.currentH!.compareTo(b.currentH!);
+        }
+        return sort;
+      });
       state currentState = queue.removeAt(0);
       for (state v in visited) {
         if (v == currentState) {
@@ -270,23 +249,10 @@ void main(List<String> arg) {
           // current health != 0 and current money != 0
           if (0 <= currentState.health! + edgeCost.health! &&
               0 <= currentState.money! - edgeCost.money!) {
-            if (edge.vehicle == "Bus") {
-              var newstate = goNextState(currentState, edge);
-              var h = heuristic(newstate);
-              newstate.currentH = h;
-              queue.add(newstate);
-            } else if (edge.vehicle == "Taxi") {
-              var newstate = goNextState(currentState, edge);
-              var h = heuristic(newstate);
-              newstate.currentH = h;
-              queue.add(newstate);
-            } else {
-              var newstate = goNextState(currentState, edge);
-              var h = heuristic(newstate);
-
-              newstate.currentH = h;
-              queue.add(newstate);
-            }
+            var newstate = goNextState(currentState, edge);
+            var h = heuristicAll(newstate);
+            newstate.currentH = h;
+            queue.add(newstate);
           } else {
             continue;
           }
