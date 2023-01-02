@@ -187,7 +187,7 @@ void main(List<String> arg) {
       var a = possible[0].vehicle;
 
       var heurisTime = possible[0].waitingTime! +
-          (possible[0].dist! / possible[0].vehicleSpeed!);
+          (possible[0].dist! / possible[0].vehicleSpeed!)*60;
       var heurisMoney = calculateCost(possible[0]).money!;
       var heurisHealth = calculateCost(possible[0]).health!;
       heuris = heuris! + (heurisHealth + heurisMoney + heurisTime);
