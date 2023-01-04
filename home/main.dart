@@ -160,43 +160,6 @@ void main(List<String> arg) {
     while (getPossibleStation(currentState) != null) {
       List<routes>? possible = getPossibleStation(currentState);
       possible!.sort((a, b) {
-        int sort = (a.waitingTime! + (a.dist! / a.vehicleSpeed!))
-            .compareTo(b.waitingTime! + (b.dist! / b.vehicleSpeed!));
-        if (sort == 0) {
-          int sort2 =
-              a.calculateCost(a).money!.compareTo(b.calculateCost(b).money!);
-          if (sort2 == 0) {
-            return a
-                .calculateCost(a)
-                .health!
-                .compareTo(b.calculateCost(b).health!);
-          } else {
-            return sort2;
-          }
-        } else {
-          return sort;
-        }
-      });
-      var cost = calculateCost(possible[0]);
-      heuris = heuris! + (cost.health! + cost.money! + cost.time!);
-      if (0 <= currentState.health! + cost.health! &&
-          0 <= currentState.money! - cost.money!) {
-        currentState = goNextState(currentState, possible[0]);
-      } else {
-        closed.add(currentState);
-        heuris = 0.0;
-
-        break;
-      }
-    }
-    return heuris;
-  }
-
-  double? heuristicAll1(state currentState) {
-    double? heuris = 0.0;
-    while (getPossibleStation(currentState) != null) {
-      List<routes>? possible = getPossibleStation(currentState);
-      possible!.sort((a, b) {
         int sort = ((((a.calculateCost(a).money! / init.money!) * 100) +
                 ((a.calculateCost(a).health! / init.health!) * 100))
             .compareTo(((b.calculateCost(a).money! / init.money!) * 100) +
@@ -314,7 +277,7 @@ void main(List<String> arg) {
           if (0 <= currentState.health! + edgeCost.health! &&
               0 <= currentState.money! - edgeCost.money!) {
             var newstate = goNextState(currentState, edge);
-            var h = heuristicAll1(newstate);
+            var h = heuristicAll(newstate);
             newstate.currentH = h;
             queue.add(newstate);
           } else {
