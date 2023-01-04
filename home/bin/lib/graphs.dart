@@ -12,6 +12,7 @@ class Graph {
     "Hamish",
     "Home"
   ];
+
   List<routes> edges = [
     routes(dist: 4, from: "Hamak", to: "Menna", vehicle: "Walk"),
     routes(dist: 6, from: "Hamak", to: "Abbaseen", vehicle: "Walk"),
@@ -20,16 +21,13 @@ class Graph {
     routes(dist: 11, from: "Hamak", to: "sharee el thawra", vehicle: "Walk"),
     routes(dist: 12, from: "Hamak", to: "Hamish", vehicle: "Walk"),
     routes(dist: 14, from: "Hamak", to: "Home", vehicle: "Walk"),
-
     routes(dist: 4, from: "Menna", to: "Abbaseen", vehicle: "Walk"),
     routes(dist: 6, from: "Menna", to: "Karajat", vehicle: "Walk"),
     routes(dist: 8, from: "Menna", to: "Hamish", vehicle: "Walk"),
     routes(dist: 9, from: "Menna", to: "Home", vehicle: "Walk"),
-
     routes(dist: 2, from: "Abbaseen", to: "Karajat", vehicle: "Walk"),
     routes(dist: 6, from: "Abbaseen", to: "jsr el raees", vehicle: "Walk"),
     routes(dist: 7, from: "Abbaseen", to: "sharee el thawra", vehicle: "Walk"),
-
     routes(dist: 2, from: "Karajat", to: "Hamish", vehicle: "Walk"),
     routes(dist: 13, from: "jsr el raees", to: "Karajat", vehicle: "Walk"),
     routes(
@@ -40,7 +38,6 @@ class Graph {
     routes(dist: 6, from: "sharee el thawra", to: "Hamish", vehicle: "Walk"),
     routes(dist: 7, from: "sharee el thawra", to: "Home", vehicle: "Walk"),
     routes(dist: 1, from: "Hamish", to: "Home", vehicle: "Walk"),
-
     routes(
         dist: 4,
         from: "Hamak",
@@ -132,7 +129,6 @@ class Graph {
         vehicle: "Bus",
         waitingTime: 7,
         vehicleSpeed: 50),
-
     routes(
         dist: 4,
         from: "Hamak",
@@ -218,7 +214,7 @@ class Graph {
         waitingTime: 4,
         vehicleSpeed: 120),
     routes(
-        dist: 5,
+        dist: 6,
         from: "Karajat",
         to: "Hamish",
         vehicle: "Taxi",
@@ -270,7 +266,6 @@ class Graph {
           } else {
             graph[state]!.add(route);
           }
-        } else {
         }
       }
     }
