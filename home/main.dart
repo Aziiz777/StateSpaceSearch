@@ -115,19 +115,17 @@ void main(List<String> arg) {
 
   double? heuristicMoney(state currentState) {
     double? heuris = 0.0;
-    while (!closed.contains(currentState)) {
+    while (getPossibleStation(currentState) != null) {
       List<routes>? possible = getPossibleStation(currentState);
-      if (possible != null) {
-        possible.sort(((a, b) =>
-            a.calculateCost(a).money!.compareTo(b.calculateCost(b).money!)));
-        var cost = calculateCost(possible[0]);
-        heuris = heuris! + cost.money!;
-        if (0 <= currentState.health! + cost.health!) {
-          currentState = goNextState(currentState, possible[0]);
-        } else {
-          heuris = 0.0;
-          break;
-        }
+      possible!.sort(((a, b) =>
+          a.calculateCost(a).money!.compareTo(b.calculateCost(b).money!)));
+      var cost = calculateCost(possible[0]);
+      heuris = heuris! + cost.money!;
+      if (0 <= currentState.health! + cost.health!) {
+        currentState = goNextState(currentState, possible[0]);
+      } else {
+        heuris = 0.0;
+        break;
       }
     }
     return heuris;
@@ -158,38 +156,36 @@ void main(List<String> arg) {
 
   double? heuristicAll(state currentState) {
     double? heuris = 0.0;
-    while (!closed.contains(currentState)) {
+    while (getPossibleStation(currentState) != null) {
       List<routes>? possible = getPossibleStation(currentState);
-      if (possible != null) {
-        possible.sort((a, b) {
-          int sort = (a.waitingTime! + (a.dist! / a.vehicleSpeed!))
-              .compareTo(b.waitingTime! + (b.dist! / b.vehicleSpeed!));
-          if (sort == 0) {
-            int sort2 =
-                a.calculateCost(a).money!.compareTo(b.calculateCost(b).money!);
-            if (sort2 == 0) {
-              return a
-                  .calculateCost(a)
-                  .health!
-                  .compareTo(b.calculateCost(b).health!);
-            } else {
-              return sort2;
-            }
+      possible!.sort((a, b) {
+        int sort = (a.waitingTime! + (a.dist! / a.vehicleSpeed!))
+            .compareTo(b.waitingTime! + (b.dist! / b.vehicleSpeed!));
+        if (sort == 0) {
+          int sort2 =
+              a.calculateCost(a).money!.compareTo(b.calculateCost(b).money!);
+          if (sort2 == 0) {
+            return a
+                .calculateCost(a)
+                .health!
+                .compareTo(b.calculateCost(b).health!);
           } else {
-            return sort;
+            return sort2;
           }
-        });
-        var cost = calculateCost(possible[0]);
-        heuris = heuris! + (cost.health! + cost.money! + cost.time!);
-        if (0 <= currentState.health! + cost.health! &&
-            0 <= currentState.money! - cost.money!) {
-          currentState = goNextState(currentState, possible[0]);
         } else {
-          closed.add(currentState);
-          heuris = 0.0;
-
-          break;
+          return sort;
         }
+      });
+      var cost = calculateCost(possible[0]);
+      heuris = heuris! + (cost.health! + cost.money! + cost.time!);
+      if (0 <= currentState.health! + cost.health! &&
+          0 <= currentState.money! - cost.money!) {
+        currentState = goNextState(currentState, possible[0]);
+      } else {
+        closed.add(currentState);
+        heuris = 0.0;
+
+        break;
       }
     }
     return heuris;
