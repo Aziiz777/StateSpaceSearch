@@ -11,6 +11,7 @@ void main(List<String> arg) {
   Map<String, List<routes>> graph = map.createGraph();
   //determine the final destination
   var final_destination = "Home";
+  state init = state(cost(0, 0, 0), 100, 10000, 0.0, null, null, "Hamak", 0.0);
 //calculate the cost of the route
   cost calculateCost(routes edge) {
     if (edge.vehicle == "Walk") {
@@ -191,9 +192,42 @@ void main(List<String> arg) {
     return heuris;
   }
 
+  double? heuristicAll1(state currentState) {
+    double? heuris = 0.0;
+    while (getPossibleStation(currentState) != null) {
+      List<routes>? possible = getPossibleStation(currentState);
+      possible!.sort((a, b) {
+        int sort = ((((a.calculateCost(a).money! / init.money!) * 100) +
+                ((a.calculateCost(a).health! / init.health!) * 100))
+            .compareTo(((b.calculateCost(a).money! / init.money!) * 100) +
+                (b.calculateCost(a).health! / init.health!) * 100));
+        if (sort == 0) {
+          return (a.waitingTime! + (a.dist! / a.vehicleSpeed!))
+              .compareTo(b.waitingTime! + (b.dist! / b.vehicleSpeed!));
+        } else {
+          return sort;
+        }
+      });
+      var cost = calculateCost(possible[0]);
+      heuris = heuris! +
+          ((cost.money! / init.money!) * 100 +
+              ((cost.health! / init.health!) * 100) +
+              cost.time!);
+      // heuris = heuris! + (cost.health! + cost.money! + cost.time!);
+      if (0 <= currentState.health! + cost.health! &&
+          0 <= currentState.money! - cost.money!) {
+        currentState = goNextState(currentState, possible[0]);
+      } else {
+        closed.add(currentState);
+        heuris = 0.0;
+
+        break;
+      }
+    }
+    return heuris;
+  }
+
   aStar() {
-    state init =
-        state(cost(0, 0, 0), 100, 10000, 0.0, null, null, "Hamak", 0.0);
     queue.add(init);
     print("d");
     print("s");
@@ -257,14 +291,19 @@ void main(List<String> arg) {
         }
         //to print solution path
         print(solution.length);
-        print("visited" + "${visited.length}");
-        for (var a in solution) {
-          print(a.lastVehicle.toString() + a.station!);
-          print("Current Health${a.health}");
-          print("Current Money${a.money}");
-          print("Current Time${a.time}");
-          print("Current Dist${a.currentDist}");
+        print("Number of visited nodes" + " ${visited.length}");
+
+        for (var a in solution.reversed) {
+          print("To:" + a.station! + " by :" + a.lastVehicle.toString());
+          // print("Current Health${currentState.health}");
+          // print("Current Money${a.money}");
+          // print("Current Time${a.time}");
+          // print("Current Dist${a.currentDist}");
         }
+        print("Current Health${currentState.health}");
+        print("Current Money${currentState.money}");
+        print("Current Time${currentState.time}");
+        print("Current Dist${currentState.currentDist}");
         return solution;
       }
       var possible = getPossibleStation(currentState);
@@ -275,7 +314,7 @@ void main(List<String> arg) {
           if (0 <= currentState.health! + edgeCost.health! &&
               0 <= currentState.money! - edgeCost.money!) {
             var newstate = goNextState(currentState, edge);
-            var h = heuristicAll(newstate);
+            var h = heuristicAll1(newstate);
             newstate.currentH = h;
             queue.add(newstate);
           } else {
