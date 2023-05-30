@@ -1,7 +1,7 @@
-import 'cost.dart';
 import 'routes.dart';
 
 class Graph {
+
   List<String> station = [
     "Hamak",
     "Menna",
@@ -30,8 +30,7 @@ class Graph {
     routes(dist: 7, from: "Abbaseen", to: "sharee el thawra", vehicle: "Walk"),
     routes(dist: 2, from: "Karajat", to: "Hamish", vehicle: "Walk"),
     routes(dist: 13, from: "jsr el raees", to: "Karajat", vehicle: "Walk"),
-    routes(
-        dist: 1, from: "jsr el raees", to: "sharee el thawra", vehicle: "Walk"),
+    routes(dist: 1, from: "jsr el raees", to: "sharee el thawra", vehicle: "Walk"),
     routes(dist: 10, from: "jsr el raees", to: "Hamish", vehicle: "Walk"),
     routes(dist: 11, from: "jsr el raees", to: "Home", vehicle: "Walk"),
     routes(dist: 12, from: "sharee el thawra", to: "Karajat", vehicle: "Walk"),

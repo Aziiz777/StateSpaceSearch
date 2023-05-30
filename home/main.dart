@@ -1,17 +1,16 @@
-import 'dart:math';
-
 import 'bin/lib/cost.dart';
 import 'bin/lib/graphs.dart';
 import 'bin/lib/routes.dart';
 import 'bin/lib/state.dart';
 
 void main(List<String> arg) {
+  Stopwatch stopwatch = Stopwatch()..start();
   Graph map = Graph();
   //init graph with the static data
   Map<String, List<routes>> graph = map.createGraph();
   //determine the final destination
   var final_destination = "Home";
-  state init = state(cost(0, 0, 0), 100, 10000, 0.0, null, null, "Hamak", 0.0);
+  state init = state(cost(0, 0, 0), 100, 1000, 0.0, null, null, "Hamak", 0.0);
 //calculate the cost of the route
   cost calculateCost(routes edge) {
     if (edge.vehicle == "Walk") {
@@ -101,6 +100,7 @@ void main(List<String> arg) {
 
   double? heuristicTime(state currentState) {
     double? heuris = 0.0;
+
     while (getPossibleStation(currentState) != null) {
       List<routes>? possible = getPossibleStation(currentState);
       possible!.sort(((a, b) =>
@@ -109,6 +109,7 @@ void main(List<String> arg) {
       heuris = heuris! +
           possible[0].waitingTime! +
           (possible[0].dist! / possible[0].vehicleSpeed!) * 60;
+
       currentState = goNextState(currentState, possible[0]);
     }
     return heuris;
@@ -121,11 +122,12 @@ void main(List<String> arg) {
       possible!.sort(((a, b) =>
           a.calculateCost(a).money!.compareTo(b.calculateCost(b).money!)));
       var cost = calculateCost(possible[0]);
+
       heuris = heuris! + cost.money!;
       if (0 <= currentState.health! + cost.health!) {
         currentState = goNextState(currentState, possible[0]);
       } else {
-        heuris = 0.0;
+        heuris = double.infinity;
         break;
       }
     }
@@ -157,6 +159,7 @@ void main(List<String> arg) {
 
   double? heuristicAll(state currentState) {
     double? heuris = 0.0;
+
     while (getPossibleStation(currentState) != null) {
       List<routes>? possible = getPossibleStation(currentState);
       possible!.sort((a, b) {
@@ -171,6 +174,7 @@ void main(List<String> arg) {
           return sort;
         }
       });
+
       var cost = calculateCost(possible[0]);
       heuris = heuris! +
           ((cost.money! / init.money!) * 100 +
@@ -182,7 +186,7 @@ void main(List<String> arg) {
         currentState = goNextState(currentState, possible[0]);
       } else {
         closed.add(currentState);
-        heuris = 0.0;
+        heuris = double.infinity;
 
         break;
       }
@@ -192,17 +196,16 @@ void main(List<String> arg) {
 
   aStar() {
     queue.add(init);
-    print("d");
-    print("s");
+    outer:
     while (queue.isNotEmpty) {
       //time
-      // queue.sort((a, b) {
-      //   int sort = ((a.time!) + a.currentH!).compareTo((b.time!) + b.currentH!);
-      //   if (sort == 0) {
-      //     return a.currentH!.compareTo(b.currentH!);
-      //   }
-      //   return sort;
-      // });
+      queue.sort((a, b) {
+        int sort = ((a.time!) + a.currentH!).compareTo((b.time!) + b.currentH!);
+        if (sort == 0) {
+          return a.currentH!.compareTo(b.currentH!);
+        }
+        return sort;
+      });
       //money
       // queue.sort((a, b) {
       //   int sort = ((init.money! - a.money!) + a.currentH!)
@@ -222,24 +225,24 @@ void main(List<String> arg) {
       //   return sort;
       // });
       //all
-      queue.sort((a, b) {
-        int sort =
-            ((a.time! + (init.health! - a.health!) + (init.money! - a.money!)) +
-                    a.currentH!)
-                .compareTo((b.time! +
-                        (init.health! - b.health!) +
-                        (init.money! - a.money!)) +
-                    b.currentH!);
-        if (sort == 0) {
-          return a.currentH!.compareTo(b.currentH!);
-        }
-        return sort;
-      });
+      // queue.sort((a, b) {
+      //   int sort =
+      //       ((a.time! + (init.health! - a.health!) + (init.money! - a.money!)) +
+      //               a.currentH!)
+      //           .compareTo((b.time! +
+      //                   (init.health! - b.health!) +
+      //                   (init.money! - a.money!)) +
+      //               b.currentH!);
+      //   if (sort == 0) {
+      //     return a.currentH!.compareTo(b.currentH!);
+      //   }
+      //   return sort;
+      // });
       state currentState = queue.removeAt(0);
       for (state v in visited) {
         if (v == currentState) {
           print("q");
-          continue;
+          continue outer;
         }
       }
       visited.add(currentState);
@@ -277,7 +280,7 @@ void main(List<String> arg) {
           if (0 <= currentState.health! + edgeCost.health! &&
               0 <= currentState.money! - edgeCost.money!) {
             var newstate = goNextState(currentState, edge);
-            var h = heuristicAll(newstate);
+            var h = heuristicTime(newstate);
             newstate.currentH = h;
             queue.add(newstate);
           } else {
@@ -293,4 +296,5 @@ void main(List<String> arg) {
   }
 
   aStar();
+  print("Astar executed in ${stopwatch.elapsed}");
 }
